@@ -20,7 +20,7 @@ const timeTakenElement = document.getElementById('time-taken');
 let shuffledQuestions, currentQuestionIndex;
 let score = 0;
 let timer;
-let timeLeft = 60;
+let timeLeft; // Time for each question
 let startTime, endTime;
 let quizCompleted = false;
 
@@ -49,15 +49,7 @@ function startQuiz() {
     totalQuestionsElement.textContent = questions.length;
     totalQuestionsResultElement.textContent = questions.length;
     
-    // Reset timer
-    timeLeft = 60;
-    timeLeftElement.textContent = timeLeft;
-    startTime = new Date();
-    
-    // Start timer
-    startTimer();
-    
-    // Show first question
+    // Start timer for the first question
     setNextQuestion();
 }
 
@@ -69,12 +61,8 @@ function setNextQuestion() {
     // Update current question number
     currentQuestionElement.textContent = currentQuestionIndex + 1;
     
-    // Update progress bar if it exists
-    const progressBar = document.querySelector('.progress-bar');
-    if (progressBar) {
-        const progressPercentage = ((currentQuestionIndex + 1) / shuffledQuestions.length) * 100;
-        progressBar.style.width = progressPercentage + '%';
-    }
+    // Reset timer for the new question
+    resetTimer();
 }
 
 // Display the current question and its answers
@@ -137,9 +125,10 @@ function selectAnswer(e) {
     }
 }
 
-// Start the timer
+// Start the timer for each question
 function startTimer() {
-    clearInterval(timer);
+    timeLeft = 60; // Reset time for each question
+    timeLeftElement.textContent = timeLeft;
     timer = setInterval(() => {
         timeLeft--;
         timeLeftElement.textContent = timeLeft;
@@ -155,6 +144,12 @@ function startTimer() {
             }
         }
     }, 1000);
+}
+
+// Reset the timer for the new question
+function resetTimer() {
+    clearInterval(timer);
+    startTimer();
 }
 
 // End the quiz and show results
