@@ -1,195 +1,223 @@
 // DOM Elements
-const welcomeScreen = document.getElementById('welcome-screen');
-const quizBody = document.getElementById('quiz-body');
-const resultsScreen = document.getElementById('results-screen');
+const homeElement = document.getElementById('home');
+const quizElement = document.getElementById('quiz');
+const resultElement = document.getElementById('result');
 const startButton = document.getElementById('start-btn');
-const nextButton = document.getElementById('next-btn');
 const restartButton = document.getElementById('restart-btn');
-const questionContainer = document.getElementById('question-container');
-const questionText = document.getElementById('question-text');
-const answerButtonsElement = document.getElementById('answer-buttons');
-const currentQuestionElement = document.getElementById('current-question');
-const totalQuestionsElement = document.getElementById('total-questions');
-const totalQuestionsResultElement = document.getElementById('total-questions-result');
-const scorePercentageElement = document.getElementById('score-percentage');
-const correctAnswersElement = document.getElementById('correct-answers');
-const timeLeftElement = document.getElementById('time-left');
+const questionElement = document.getElementById('question');
+const choiceTexts = Array.from(document.getElementsByClassName('choice-text'));
+const questionCounterElement = document.getElementById('question-counter');
+const timerElement = document.getElementById('timer');
+const scoreElement = document.getElementById('score');
+const finalScoreElement = document.getElementById('final-score');
 const timeTakenElement = document.getElementById('time-taken');
+const strengthsList = document.getElementById('strengths-list');
+const weaknessesList = document.getElementById('weaknesses-list');
+const questionsContainer = document.getElementById('questions-container');
 
-// Quiz Variables
-let shuffledQuestions, currentQuestionIndex;
+// Quiz variables
+let currentQuestion = {};
+let acceptingAnswers = false;
 let score = 0;
+let questionCounter = 0;
+let availableQuestions = [];
 let timer;
-let timeLeft; // Time for each question
-let startTime, endTime;
-let quizCompleted = false;
+let timeRemaining = 600; // 10 minutes in seconds
+let userAnswers = [];
+let quizStartTime;
 
-// Event Listeners
+// Constants
+const CORRECT_BONUS = 1;
+const MAX_QUESTIONS = 20;
+
+// Start quiz
 startButton.addEventListener('click', startQuiz);
-nextButton.addEventListener('click', () => {
-    currentQuestionIndex++;
-    setNextQuestion();
+restartButton.addEventListener('click', () => {
+    window.location.reload();
 });
-restartButton.addEventListener('click', startQuiz);
 
-// Initialize the quiz
 function startQuiz() {
-    welcomeScreen.style.display = 'none';
-    resultsScreen.style.display = 'none';
-    quizBody.style.display = 'block';
-    quizBody.classList.add('fade-in');
-    
-    // Reset quiz state
-    shuffledQuestions = questions.sort(() => Math.random() - 0.5);
-    currentQuestionIndex = 0;
+    questionCounter = 0;
     score = 0;
-    quizCompleted = false;
+    // Use the questions from the quizQuestions object
+    availableQuestions = [...quizQuestions.allQuestions];
+    userAnswers = [];
+    quizStartTime = new Date();
     
-    // Update total questions display
-    totalQuestionsElement.textContent = questions.length;
-    totalQuestionsResultElement.textContent = questions.length;
+    homeElement.classList.add('hide');
+    quizElement.classList.remove('hide');
     
-    // Start timer for the first question
-    setNextQuestion();
+    startTimer();
+    getNewQuestion();
 }
 
-// Set up the next question
-function setNextQuestion() {
-    resetState();
-    showQuestion(shuffledQuestions[currentQuestionIndex]);
-    
-    // Update current question number
-    currentQuestionElement.textContent = currentQuestionIndex + 1;
-    
-    // Reset timer for the new question
-    resetTimer();
-}
-
-// Display the current question and its answers
-function showQuestion(question) {
-    questionText.textContent = question.question;
-    
-    // Create answer buttons
-    question.answers.forEach(answer => {
-        const button = document.createElement('button');
-        button.textContent = answer.text;
-        button.classList.add('answer-btn');
-        
-        if (answer.correct) {
-            button.dataset.correct = answer.correct;
-        }
-        
-        button.addEventListener('click', selectAnswer);
-        answerButtonsElement.appendChild(button);
-    });
-}
-
-// Reset the question container for the next question
-function resetState() {
-    nextButton.style.display = 'none';
-    while (answerButtonsElement.firstChild) {
-        answerButtonsElement.removeChild(answerButtonsElement.firstChild);
-    }
-}
-
-// Handle answer selection
-function selectAnswer(e) {
-    const selectedButton = e.target;
-    const correct = selectedButton.dataset.correct;
-    
-    // Process the answer
-    if (correct) {
-        selectedButton.classList.add('correct');
-        score++;
-    } else {
-        selectedButton.classList.add('incorrect');
-        
-        // Highlight the correct answer
-        Array.from(answerButtonsElement.children).forEach(button => {
-            if (button.dataset.correct) {
-                button.classList.add('correct');
-            }
-        });
-    }
-    
-    // Disable all answer buttons after selection
-    Array.from(answerButtonsElement.children).forEach(button => {
-        button.disabled = true;
-    });
-    
-    // Show next button or end quiz
-    if (shuffledQuestions.length > currentQuestionIndex + 1) {
-        nextButton.style.display = 'block';
-    } else {
-        endQuiz();
-    }
-}
-
-// Start the timer for each question
 function startTimer() {
-    timeLeft = 60; // Reset time for each question
-    timeLeftElement.textContent = timeLeft;
     timer = setInterval(() => {
-        timeLeft--;
-        timeLeftElement.textContent = timeLeft;
+        timeRemaining--;
         
-        if (timeLeft <= 10) {
-            timeLeftElement.style.color = '#dc3545';
-        }
+        const minutes = Math.floor(timeRemaining / 60);
+        const seconds = timeRemaining % 60;
         
-        if (timeLeft <= 0) {
-            clearInterval(timer);
-            if (!quizCompleted) {
-                endQuiz();
-            }
+        timerElement.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        
+        if (timeRemaining <= 0) {
+            endQuiz();
         }
     }, 1000);
 }
 
-// Reset the timer for the new question
-function resetTimer() {
-    clearInterval(timer);
-    startTimer();
+function getNewQuestion() {
+    if (availableQuestions.length === 0 || questionCounter >= MAX_QUESTIONS) {
+        endQuiz();
+        return;
+    }
+    
+    questionCounter++;
+    questionCounterElement.innerText = `${questionCounter}/${MAX_QUESTIONS}`;
+    
+    const questionIndex = Math.floor(Math.random() * availableQuestions.length);
+    currentQuestion = availableQuestions[questionIndex];
+    questionElement.innerText = currentQuestion.question;
+    
+    choiceTexts.forEach(choice => {
+        const number = choice.dataset['number'];
+        // Update to use the choices array instead of choice1, choice2, etc.
+        choice.innerText = currentQuestion.choices[number - 1];
+    });
+    
+    availableQuestions.splice(questionIndex, 1);
+    acceptingAnswers = true;
 }
 
-// End the quiz and show results
+choiceTexts.forEach(choice => {
+    choice.addEventListener('click', e => {
+        if (!acceptingAnswers) return;
+        
+        acceptingAnswers = false;
+        const selectedChoice = e.target;
+        const selectedAnswer = parseInt(selectedChoice.dataset['number']) - 1;
+        
+        // Update to use correctAnswer property
+        const classToApply = selectedAnswer === currentQuestion.correctAnswer ? 'correct' : 'incorrect';
+        
+        if (classToApply === 'correct') {
+            incrementScore(CORRECT_BONUS);
+        }
+        
+        // Store user's answer
+        userAnswers.push({
+            question: currentQuestion.question,
+            userAnswer: selectedAnswer,
+            correctAnswer: currentQuestion.correctAnswer,
+            isCorrect: selectedAnswer === currentQuestion.correctAnswer,
+            category: currentQuestion.category,
+            explanation: currentQuestion.explanation
+        });
+        
+        selectedChoice.parentElement.classList.add(classToApply);
+        
+        setTimeout(() => {
+            selectedChoice.parentElement.classList.remove(classToApply);
+            getNewQuestion();
+        }, 1000);
+    });
+});
+
+function incrementScore(num) {
+    score += num;
+    scoreElement.innerText = score;
+}
+
 function endQuiz() {
-    quizCompleted = true;
     clearInterval(timer);
-    endTime = new Date();
+    
+    quizElement.classList.add('hide');
+    resultElement.classList.remove('hide');
     
     // Calculate time taken
-    const timeTaken = Math.floor((endTime - startTime) / 1000);
+    const endTime = new Date();
+    const timeTaken = Math.floor((endTime - quizStartTime) / 1000); // in seconds
+    const minutes = Math.floor(timeTaken / 60);
+    const seconds = timeTaken % 60;
     
-    // Calculate score percentage
-    const scorePercentage = Math.floor((score / questions.length) * 100);
+    finalScoreElement.innerText = score;
+    timeTakenElement.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
     
-    // Update results screen
-    scorePercentageElement.textContent = scorePercentage + '%';
-    correctAnswersElement.textContent = score;
-    timeTakenElement.textContent = timeTaken;
+    // Analyze performance
+    analyzePerformance();
     
-    // Show results screen
-    quizBody.style.display = 'none';
-    resultsScreen.style.display = 'block';
-    resultsScreen.classList.add('fade-in');
+    // Display question review
+    displayQuestionReview();
 }
 
-// Add a progress bar to the quiz
-function addProgressBar() {
-    const quizInfo = document.querySelector('.quiz-info');
+function analyzePerformance() {
+    // Clear previous analysis
+    strengthsList.innerHTML = '';
+    weaknessesList.innerHTML = '';
     
-    const progressContainer = document.createElement('div');
-    progressContainer.classList.add('progress-container');
+    // Group questions by category
+    const categories = {};
+    userAnswers.forEach(answer => {
+        if (!categories[answer.category]) {
+            categories[answer.category] = {
+                total: 0,
+                correct: 0
+            };
+        }
+        
+        categories[answer.category].total++;
+        if (answer.isCorrect) {
+            categories[answer.category].correct++;
+        }
+    });
     
-    const progressBar = document.createElement('div');
-    progressBar.classList.add('progress-bar');
+    // Determine strengths and weaknesses
+    for (const category in categories) {
+        const percentage = (categories[category].correct / categories[category].total) * 100;
+        
+        if (percentage >= 70) {
+            const li = document.createElement('li');
+            li.innerText = `${category}: ${percentage.toFixed(0)}% correct`;
+            strengthsList.appendChild(li);
+        } else {
+            const li = document.createElement('li');
+            li.innerText = `${category}: ${percentage.toFixed(0)}% correct`;
+            weaknessesList.appendChild(li);
+        }
+    }
     
-    progressContainer.appendChild(progressBar);
-    quizBody.insertBefore(progressContainer, quizInfo.nextSibling);
+    // If no strengths or weaknesses, display a message
+    if (strengthsList.children.length === 0) {
+        const li = document.createElement('li');
+        li.innerText = 'No particular strengths identified';
+        strengthsList.appendChild(li);
+    }
+    
+    if (weaknessesList.children.length === 0) {
+        const li = document.createElement('li');
+        li.innerText = 'No particular weaknesses identified';
+        weaknessesList.appendChild(li);
+    }
 }
 
-// Initialize the quiz when the page loads
-window.addEventListener('DOMContentLoaded', () => {
-    addProgressBar();
-});
+function displayQuestionReview() {
+    questionsContainer.innerHTML = '';
+    
+    userAnswers.forEach((answer, index) => {
+        const questionDiv = document.createElement('div');
+        questionDiv.classList.add('question-review-item');
+        
+        const questionStatus = answer.isCorrect ? 
+            '<span class="correct-answer"><i class="fas fa-check"></i> Correct</span>' : 
+            '<span class="wrong-answer"><i class="fas fa-times"></i> Incorrect</span>';
+        
+        questionDiv.innerHTML = `
+            <p><strong>Question ${index + 1}:</strong> ${answer.question} ${questionStatus}</p>
+            <p>Your answer: ${answer.userAnswer !== undefined ? currentQuestion.choices[answer.userAnswer] : 'Not answered'}</p>
+            ${!answer.isCorrect ? `<p>Correct answer: ${currentQuestion.choices[answer.correctAnswer]}</p>` : ''}
+            <p><strong>Explanation:</strong> ${answer.explanation}</p>
+        `;
+        
+        questionsContainer.appendChild(questionDiv);
+    });
+}

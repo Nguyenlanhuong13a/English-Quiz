@@ -6,53 +6,78 @@
     <title>Advanced English Quiz</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <div class="quiz-app">
-            <div class="quiz-header">
+        <div class="quiz-container">
+            <div id="home" class="flex-center flex-column">
                 <h1>Advanced English Quiz</h1>
-                <p>Test your knowledge of advanced English vocabulary and grammar</p>
-            </div>
-            
-            <div class="welcome-screen" id="welcome-screen">
-                <h2>Welcome to the Advanced English Quiz!</h2>
-                <p>This quiz contains 20 challenging questions on advanced English vocabulary and grammar.</p>
-                <p>Ready to test your knowledge?</p>
+                <p class="description">Test your vocabulary and grammar skills with this advanced English quiz</p>
                 <button id="start-btn" class="btn">Start Quiz</button>
-            </div>
-
-            <div class="quiz-body" id="quiz-body">
-                <div class="quiz-info">
-                    <div class="count">Question <span id="current-question">1</span> of <span id="total-questions">20</span></div>
-                    <div class="timer">
-                        <i class="fas fa-clock"></i> <span id="time-left">60</span>s
-                    </div>
-                </div>
-                
-                <div id="question-container">
-                    <h2 id="question-text">Question text will appear here</h2>
-                    <div id="answer-buttons" class="answer-buttons">
-                        <!-- Answer buttons will be inserted here by JavaScript -->
-                    </div>
-                </div>
-                
-                <div class="quiz-footer">
-                    <button id="next-btn" class="btn next-btn">Next Question</button>
+                <div class="instructions">
+                    <h3>Instructions:</h3>
+                    <ul>
+                        <li>The quiz contains 20 questions</li>
+                        <li>You have 10 minutes to complete the quiz</li>
+                        <li>You will receive detailed feedback at the end</li>
+                    </ul>
                 </div>
             </div>
             
-            <div class="results-screen" id="results-screen">
-                <h2>Quiz Results</h2>
-                <div class="score-container">
-                    <div class="score-circle">
-                        <span id="score-percentage">0%</span>
+            <div id="quiz" class="hide">
+                <div id="hud">
+                    <div id="hud-item">
+                        <p class="hud-prefix">Question</p>
+                        <h2 class="hud-main-text" id="question-counter">1/20</h2>
                     </div>
-                    <p>You scored <span id="correct-answers">0</span> out of <span id="total-questions-result">20</span></p>
+                    <div id="hud-item">
+                        <p class="hud-prefix">Time Remaining</p>
+                        <h2 class="hud-main-text" id="timer">10:00</h2>
+                    </div>
+                    <div id="hud-item">
+                        <p class="hud-prefix">Score</p>
+                        <h2 class="hud-main-text" id="score">0</h2>
+                    </div>
                 </div>
-                <div class="result-details">
-                    <p>Time taken: <span id="time-taken">0</span> seconds</p>
+                <h2 id="question">Question text will appear here</h2>
+                <div class="choice-container">
+                    <p class="choice-prefix">A</p>
+                    <p class="choice-text" data-number="1">Choice 1</p>
+                </div>
+                <div class="choice-container">
+                    <p class="choice-prefix">B</p>
+                    <p class="choice-text" data-number="2">Choice 2</p>
+                </div>
+                <div class="choice-container">
+                    <p class="choice-prefix">C</p>
+                    <p class="choice-text" data-number="3">Choice 3</p>
+                </div>
+                <div class="choice-container">
+                    <p class="choice-prefix">D</p>
+                    <p class="choice-text" data-number="4">Choice 4</p>
+                </div>
+            </div>
+            
+            <div id="result" class="flex-center flex-column hide">
+                <h1>Quiz Results</h1>
+                <div id="result-summary">
+                    <p>Your score: <span id="final-score">0</span>/20</p>
+                    <p>Time taken: <span id="time-taken">0:00</span></p>
+                </div>
+                <div id="performance-analysis">
+                    <h2>Performance Analysis</h2>
+                    <div id="strengths">
+                        <h3><i class="fas fa-check-circle"></i> Strengths</h3>
+                        <ul id="strengths-list"></ul>
+                    </div>
+                    <div id="weaknesses">
+                        <h3><i class="fas fa-exclamation-circle"></i> Areas for Improvement</h3>
+                        <ul id="weaknesses-list"></ul>
+                    </div>
+                </div>
+                <div id="question-review">
+                    <h2>Question Review</h2>
+                    <div id="questions-container"></div>
                 </div>
                 <button id="restart-btn" class="btn">Restart Quiz</button>
             </div>
